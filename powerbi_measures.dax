@@ -1,0 +1,107 @@
+// =====================================================================
+// Saudi Fair Hiring Audit - DAX measures
+// Create a blank table called _Measures (Home > Enter data > Load),
+// then add each measure below with Modeling > New measure.
+// Tables come from the CSV files in output/ (created by: python pipeline.py).
+// =====================================================================
+
+// ---------- Base counts (test-set predictions) ----------
+Applicants = COUNTROWS ( fact_prediction )
+
+Selected = SUM ( fact_prediction[predicted_hire] )
+
+Selection Rate = DIVIDE ( [Selected], [Applicants] )
+
+Avg Score = AVERAGE ( fact_prediction[score] )
+
+// ---------- Gender fairness ----------
+Selection Rate Female =
+CALCULATE ( [Selection Rate], dim_applicant[gender] = "Female" )
+
+Selection Rate Male =
+CALCULATE ( [Selection Rate], dim_applicant[gender] = "Male" )
+
+Gender Impact Ratio =
+VAR f = [Selection Rate Female]
+VAR m = [Selection Rate Male]
+RETURN DIVIDE ( MIN ( f, m ), MAX ( f, m ) )
+
+Gender Four-Fifths Status =
+IF ( [Gender Impact Ratio] >= 0.8, "PASS", "FAIL" )
+
+// ---------- Region fairness (works with any slicer selection) ----------
+Region Impact Ratio =
+VAR t =
+    ADDCOLUMNS ( ALLSELECTED ( dim_applicant[region_group] ), "@r", [Selection Rate] )
+RETURN DIVIDE ( MINX ( t, [@r] ), MAXX ( t, [@r] ) )
+
+// Use in a bar chart with region_group on the axis
+Impact Ratio vs Best Region =
+VAR best =
+    MAXX ( ALLSELECTED ( dim_applicant[region_group] ), [Selection Rate] )
+RETURN DIVIDE ( [Selection Rate], best )
+
+// Use in a bar chart with gender on the axis
+Impact Ratio vs Best Gender =
+VAR best =
+    MAXX ( ALLSELECTED ( dim_applicant[gender] ), [Selection Rate] )
+RETURN DIVIDE ( [Selection Rate], best )
+
+// ---------- Qualified-applicant view (uses synthetic ground truth) ----------
+Qualified Applicants =
+CALCULATE ( [Applicants], dim_applicant[truly_qualified] = 1 )
+
+Recall of Qualified =
+DIVIDE (
+    CALCULATE ( [Selected], dim_applicant[truly_qualified] = 1 ),
+    [Qualified Applicants]
+)
+
+Missed Talent =
+CALCULATE (
+    [Applicants],
+    dim_applicant[truly_qualified] = 1,
+    fact_prediction[predicted_hire] = 0
+)
+
+Equal Opportunity Gap (Gender) =
+VAR f = CALCULATE ( [Recall of Qualified], dim_applicant[gender] = "Female" )
+VAR m = CALCULATE ( [Recall of Qualified], dim_applicant[gender] = "Male" )
+RETURN ABS ( f - m )
+
+// ---------- Historical decisions (all 10,000 applicants) ----------
+Historical Hire Rate = AVERAGE ( dim_applicant[hired_historical] )
+
+Historical Gender Impact Ratio =
+VAR f = CALCULATE ( [Historical Hire Rate], dim_applicant[gender] = "Female" )
+VAR m = CALCULATE ( [Historical Hire Rate], dim_applicant[gender] = "Male" )
+RETURN DIVIDE ( MIN ( f, m ), MAX ( f, m ) )
+
+Historical Gap Among Qualified (pp) =
+VAR f = CALCULATE ( [Historical Hire Rate], dim_applicant[gender] = "Female", dim_applicant[truly_qualified] = 1 )
+VAR m = CALCULATE ( [Historical Hire Rate], dim_applicant[gender] = "Male", dim_applicant[truly_qualified] = 1 )
+RETURN ( m - f ) * 100
+
+// ---------- Model-level metrics ----------
+Model AUC = MAX ( fact_model_metrics[auc_vs_history] )
+
+Model DI Gender = MAX ( fact_model_metrics[di_gender] )
+
+Model DI Region = MAX ( fact_model_metrics[di_region_group] )
+
+Four-Fifths Threshold = 0.8
+
+// ---------- Conditional-formatting helpers (Format > Fx > Field value) ----------
+Gender Ratio Color =
+IF ( [Gender Impact Ratio] >= 0.8, "#00A888", "#EC4647" )
+
+Region Ratio Color =
+IF ( [Region Impact Ratio] >= 0.8, "#00A888", "#EC4647" )
+
+Proxy Risk Color =
+SWITCH (
+    SELECTEDVALUE ( fact_proxy_scores[risk_level] ),
+    "High", "#EC4647",
+    "Medium", "#F2A600",
+    "#8EA9DB"
+)

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Saudi Fair Hiring Audit</title>
+  <style>
+:root {
+  --navy: #1F3864; --blue: #257DE0; --orange: #F47230; --teal: #00A888; --red: #EC4647; --amber: #F2A600;
+  --bg: #F5F7FA; --card: #FFFFFF; --line: #E3E8F0; --text: #191919; --sub: #666666; --soft: #EDF2FA;
+  --radius: 12px; --shadow: 0 1px 2px rgba(16, 24, 40, .05);
+  font-family: "Segoe UI", system-ui, -apple-system, "Noto Sans Arabic", Tahoma, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-size: 14px; }
+.layout { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+
+/* sidebar */
+.sidebar { background: var(--navy); color: #fff; padding: 20px 14px; display: flex; flex-direction: column; gap: 18px; position: sticky; top: 0; height: 100vh; }
+.brand { display: flex; gap: 10px; align-items: center; padding: 0 6px; }
+.logo { width: 38px; height: 38px; border-radius: 10px; background: var(--teal); display: grid; place-items: center; font-weight: 700; }
+.brand-title { font-weight: 700; font-size: 15px; }
+.brand-sub { font-size: 11.5px; opacity: .7; }
+nav { display: flex; flex-direction: column; gap: 2px; }
+nav a { color: #DCE4F2; text-decoration: none; padding: 9px 10px; border-radius: 8px; display: flex; gap: 10px; align-items: center; }
+nav a:hover { background: rgba(255,255,255,.08); }
+nav a.active { background: rgba(255,255,255,.15); color: #fff; font-weight: 600; }
+.ico { width: 18px; text-align: center; opacity: .85; }
+.side-foot { margin-top: auto; font-size: 11.5px; opacity: .8; }
+.side-foot p { margin: 8px 0 0; line-height: 1.45; }
+.badge { display: inline-block; padding: 3px 9px; border-radius: 99px; background: rgba(255,255,255,.15); font-size: 11px; }
+
+/* main */
+main { padding: 22px 28px 40px; min-width: 0; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.topbar h1 { margin: 0; font-size: 22px; color: var(--navy); }
+.top-actions { display: flex; gap: 8px; }
+.lead { color: var(--sub); margin: 4px 0 16px; max-width: 900px; line-height: 1.5; }
+.page { display: none; }
+.page.active { display: block; }
+
+.btn { border: 1px solid var(--line); background: #fff; color: var(--navy); padding: 8px 14px; border-radius: 8px; cursor: pointer; font: inherit; text-decoration: none; }
+.btn:hover { background: var(--soft); }
+.btn.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+.btn.primary:hover { background: #2A4A80; }
+.btn.ghost { background: transparent; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 16px; min-width: 0; }
+.card h3 { margin: 0 0 12px; font-size: 14px; color: var(--navy); }
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.card-head h3 { margin: 0; }
+.note { color: var(--sub); font-size: 12.5px; line-height: 1.5; margin: 10px 0 0; }
+.grid { display: grid; gap: 16px; }
+.g-2 { grid-template-columns: 1fr 1fr; }
+.g-2-1 { grid-template-columns: 2fr 1fr; }
+.g-1-1 { grid-template-columns: 1fr 1fr; }
+.grid > .card { margin-bottom: 0; }
+.grid { margin-bottom: 16px; }
+.chart { position: relative; height: 300px; }
+.chart.tall { height: 360px; }
+
+/* KPIs */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+.kpi { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.kpi .lbl { color: var(--sub); font-size: 12.5px; }
+.kpi .val { font-size: 26px; font-weight: 700; color: var(--navy); margin-top: 6px; display: flex; align-items: center; gap: 10px; }
+.kpi .val.bad { color: var(--red); } .kpi .val.good { color: var(--teal); }
+.chip { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; color: #fff; }
+.chip.bad { background: var(--red); } .chip.good { background: var(--teal); }
+
+/* tables */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: start; background: var(--soft); color: var(--navy); font-weight: 600; padding: 8px 10px; white-space: nowrap; }
+td { padding: 7px 10px; border-bottom: 1px solid var(--line); }
+tr.click { cursor: pointer; } tr.click:hover td { background: #FAFBFD; }
+tr.sel td { background: #EEF4FF !important; }
+.pass { color: var(--teal); font-weight: 700; } .fail { color: var(--red); font-weight: 700; }
+.pager { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 10px; color: var(--sub); }
+
+/* filters / forms */
+.filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-bottom: 16px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--sub); }
+select, input { font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--text); min-width: 150px; }
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
+.form button { grid-column: 1 / -1; }
+.score-big { font-size: 40px; font-weight: 700; color: var(--navy); }
+.meter { height: 10px; background: var(--soft); border-radius: 99px; position: relative; margin: 8px 0 14px; }
+.meter > i { position: absolute; inset-inline-start: 0; top: 0; bottom: 0; border-radius: 99px; background: var(--blue); }
+.meter > b { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--red); }
+.bar-cell { display: flex; align-items: center; gap: 6px; }
+.bar-cell i { display: inline-block; height: 8px; border-radius: 4px; }
+.code { background: #0F1B33; color: #DCE4F2; padding: 14px; border-radius: 10px; overflow: auto; font-size: 12.5px; margin: 0; white-space: pre-wrap; direction: ltr; text-align: left; }
+
+/* chat */
+.chat { display: flex; flex-direction: column; height: calc(100vh - 120px); padding: 0; overflow: hidden; }
+.chat-log { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; line-height: 1.55; }
+.msg.user { align-self: flex-end; background: var(--navy); color: #fff; border-end-end-radius: 4px; }
+.msg.bot { align-self: flex-start; background: var(--soft); border-end-start-radius: 4px; }
+.msg.bot table { background: #fff; margin: 8px 0; font-size: 12.5px; }
+.msg.bot p { margin: 6px 0; } .msg.bot ul { margin: 6px 0; padding-inline-start: 20px; }
+.msg.bot code { background: #fff; padding: 1px 5px; border-radius: 4px; }
+.msg.bot pre { background: #0F1B33; color: #DCE4F2; padding: 10px; border-radius: 8px; overflow: auto; direction: ltr; text-align: left; }
+.msg.bot pre code { background: none; }
+.trace { font-size: 11.5px; color: var(--sub); margin-top: 6px; border-top: 1px dashed #C9D3E3; padding-top: 6px; }
+.trace code { font-size: 11px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 18px 10px; }
+.chips button { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 6px 12px; cursor: pointer; font: inherit; font-size: 12.5px; color: var(--navy); }
+.chips button:hover { background: var(--soft); }
+.chat-input { display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); background: #fff; }
+.chat-input input { flex: 1; }
+.typing { color: var(--sub); font-style: italic; }
+
+/* RTL */
+[dir="rtl"] th { text-align: right; }
+
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; }
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .g-2, .g-2-1, .g-1-1 { grid-template-columns: 1fr; }
+}
+</style>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231F3864'/><path d='M9 21l5-10 4 7 3-4 3 7' stroke='%2300A888' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">FH</div>
+      <div>
+        <div class="brand-title" data-i18n="appName">FairHire Audit</div>
+        <div class="brand-sub" data-i18n="appSub">CS 476 · Ethics in Data Science</div>
+      </div>
+    </div>
+    <nav id="nav">
+      <a href="#overview" data-page="overview"><span class="ico">◉</span><span data-i18n="nav_overview">Overview</span></a>
+      <a href="#cleaning" data-page="cleaning"><span class="ico">✧</span><span data-i18n="nav_cleaning">Data cleaning</span></a>
+      <a href="#models" data-page="models"><span class="ico">▦</span><span data-i18n="nav_models">Model comparison</span></a>
+      <a href="#groups" data-page="groups"><span class="ico">◧</span><span data-i18n="nav_groups">Group fairness</span></a>
+      <a href="#proxies" data-page="proxies"><span class="ico">⌖</span><span data-i18n="nav_proxies">Proxies & explainability</span></a>
+      <a href="#applicants" data-page="applicants"><span class="ico">☰</span><span data-i18n="nav_applicants">Applicants</span></a>
+      <a href="#score" data-page="score"><span class="ico">✎</span><span data-i18n="nav_score">Score an applicant</span></a>
+      <a href="#assistant" data-page="assistant"><span class="ico">✦</span><span data-i18n="nav_assistant">AI assistant</span></a>
+      <a href="#sql" data-page="sql"><span class="ico">⌗</span><span data-i18n="nav_sql">SQL audit</span></a>
+    </nav>
+    <div class="side-foot">
+      <span class="badge" id="agentMode">agent: …</span>
+      <p data-i18n="synthetic">All data is synthetic. Results support, never replace, human decisions.</p>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <h1 id="pageTitle">Overview</h1>
+      <div class="top-actions">
+        <a class="btn ghost" href="/docs" target="_blank" rel="noopener">API</a>
+        <button class="btn" id="langBtn">العربية</button>
+      </div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section class="page" id="page-overview">
+      <p class="lead" data-i18n="ov_lead">Past hiring decisions on 10,000 synthetic Saudi applications. Are equally qualified people treated alike?</p>
+      <div class="kpis" id="ovKpis"></div>
+      <div class="grid g-2-1">
+        <div class="card"><h3 data-i18n="ov_chart1">Hire rate by qualification score and gender (%)</h3><div class="chart"><canvas id="chBand"></canvas></div>
+          <p class="note" data-i18n="ov_note1">At every qualification level, women were hired less often than men. That gap is the bias.</p></div>
+        <div class="card"><h3 data-i18n="ov_chart2">Hire rate by region (%)</h3><div class="chart"><canvas id="chRegion"></canvas></div>
+          <p class="note" data-i18n="ov_note2">Red bars fall below 80% of the best region (four-fifths rule).</p></div>
+      </div>
+    </section>
+
+    <!-- CLEANING -->
+    <section class="page" id="page-cleaning">
+      <p class="lead" data-i18n="cl_lead">The raw HR export had duplicates, test rows, Arabic/English label variants, numbers stored as text and personal identifiers. The cleaning script fixes them in logged steps (stored in SQL table data_quality_log).</p>
+      <div class="kpis" id="clKpis"></div>
+      <div class="grid g-2-1">
+        <div class="card"><h3 data-i18n="cl_steps">Cleaning steps</h3><div class="table-wrap" id="clSteps"></div></div>
+        <div class="card"><h3 data-i18n="cl_profile">Before vs after</h3><div class="table-wrap" id="clProfile"></div></div>
+      </div>
+      <div class="card"><h3 data-i18n="cl_raw">Raw export (personal identifiers masked)</h3><div class="table-wrap" id="clRaw"></div></div>
+      <div class="card"><h3 data-i18n="cl_clean">Same applicants after cleaning</h3><div class="table-wrap" id="clClean"></div></div>
+    </section>
+
+    <!-- MODELS -->
+    <section class="page" id="page-models">
+      <p class="lead" data-i18n="md_lead">Five models trained on the same biased history. Every model shortlists the same share of applicants.</p>
+      <div class="card"><h3 data-i18n="md_table">Scorecard</h3><div class="table-wrap" id="mdTable"></div></div>
+      <div class="grid g-2">
+        <div class="card"><h3 data-i18n="md_chart1">Impact ratio by model (≥ 0.80 passes)</h3><div class="chart"><canvas id="chDI"></canvas></div></div>
+        <div class="card"><h3 data-i18n="md_chart2">Fairness vs accuracy</h3><div class="chart"><canvas id="chTrade"></canvas></div>
+          <p class="note" data-i18n="md_note2">Moving right (fairer) costs almost no AUC.</p></div>
+      </div>
+    </section>
+
+    <!-- GROUPS -->
+    <section class="page" id="page-groups">
+      <div class="filters">
+        <label><span data-i18n="model">Model</span><select id="grModel"></select></label>
+        <label><span data-i18n="attribute">Attribute</span>
+          <select id="grAttr"><option value="gender">gender</option><option value="region_group">region_group</option><option value="nationality">nationality</option></select></label>
+      </div>
+      <div class="grid g-2-1">
+        <div class="card"><h3 data-i18n="gr_chart">Selection rate and recall of qualified applicants</h3><div class="chart"><canvas id="chGroups"></canvas></div></div>
+        <div class="card"><h3 data-i18n="gr_table">Details</h3><div class="table-wrap" id="grTable"></div>
+          <p class="note" data-i18n="gr_note">Recall of qualified = share of truly qualified people the model selects. Equal recall = equal opportunity.</p></div>
+      </div>
+    </section>
+
+    <!-- PROXIES -->
+    <section class="page" id="page-proxies">
+      <div class="grid g-2">
+        <div class="card"><h3 data-i18n="px_chart">How well each feature reveals a group (AUC)</h3><div class="chart tall"><canvas id="chProxy"></canvas></div>
+          <p class="note" data-i18n="px_note">0.5 = reveals nothing · above 0.7 = high proxy risk. Career gap reveals gender; commute reveals region.</p></div>
+        <div class="card"><div class="card-head"><h3 data-i18n="fi_chart">What drives the score</h3><select id="fiModel"></select></div>
+          <div class="chart tall"><canvas id="chFI"></canvas></div>
+          <p class="note" data-i18n="fi_note">Logistic regression: |standardised coefficient|. Gradient boosting: permutation importance.</p></div>
+      </div>
+    </section>
+
+    <!-- APPLICANTS -->
+    <section class="page" id="page-applicants">
+      <div class="filters">
+        <label><span data-i18n="model">Model</span><select id="apModel"></select></label>
+        <label><span data-i18n="gender">Gender</span><select id="apGender"><option value="">—</option><option>Female</option><option>Male</option></select></label>
+        <label><span data-i18n="region">Region</span><select id="apRegion"><option value="">—</option><option>Central</option><option>Eastern</option><option>Western</option><option>Southern</option><option>Northern</option></select></label>
+        <label><span data-i18n="outcome">Outcome</span><select id="apOutcome"><option value="">—</option><option>Qualified - selected</option><option>Qualified - rejected (missed talent)</option><option>Not qualified - selected</option><option>Not qualified - rejected</option></select></label>
+      </div>
+      <div class="grid g-2-1">
+        <div class="card"><div class="table-wrap" id="apTable"></div>
+          <div class="pager"><button class="btn ghost" id="apPrev">‹</button><span id="apInfo"></span><button class="btn ghost" id="apNext">›</button></div></div>
+        <div class="card" id="apDetail"><h3 data-i18n="ap_detail">Applicant detail</h3><p class="note" data-i18n="ap_click">Click a row to see every model's decision and the reasons behind the M5 score.</p></div>
+      </div>
+    </section>
+
+    <!-- SCORE -->
+    <section class="page" id="page-score">
+      <p class="lead" data-i18n="sc_lead">Score a new applicant with the recommended model (M5). Only job-relevant information is collected; gender, nationality and region are never asked.</p>
+      <div class="grid g-1-1">
+        <form class="card form" id="scoreForm">
+          <label><span data-i18n="f_gpa">GPA (0–5)</span><input name="gpa" type="number" step="0.01" min="0" max="5" value="4.2" required></label>
+          <label><span data-i18n="f_exp">Years of experience</span><input name="years_experience" type="number" min="0" max="40" value="3" required></label>
+          <label><span data-i18n="f_eng">English score (0–9)</span><input name="english_score" type="number" step="0.1" min="0" max="9" value="7" required></label>
+          <label><span data-i18n="f_cert">Certifications</span><input name="certifications" type="number" min="0" max="20" value="2"></label>
+          <label><span data-i18n="f_tier">University tier</span><select name="university_tier"><option value="1">1 (top)</option><option value="2" selected>2</option><option value="3">3</option></select></label>
+          <label><span data-i18n="f_intern">Internship</span><select name="internship"><option value="1">Yes</option><option value="0">No</option></select></label>
+          <label><span data-i18n="f_degree">Degree</span><select name="degree_field" id="fDegree"></select></label>
+          <label><span data-i18n="f_job">Job family</span><select name="job_family" id="fJob"></select></label>
+          <button class="btn primary" type="submit" data-i18n="sc_btn">Score applicant</button>
+        </form>
+        <div class="card" id="scoreResult"><h3 data-i18n="sc_result">Result</h3><p class="note" data-i18n="sc_empty">Fill in the form to see the score and its explanation.</p></div>
+      </div>
+      <div class="card"><h3 data-i18n="sc_log">Recent requests (stored in SQL table scoring_requests)</h3><div class="table-wrap" id="scLog"></div></div>
+    </section>
+
+    <!-- ASSISTANT -->
+    <section class="page" id="page-assistant">
+      <div class="chat card">
+        <div class="chat-log" id="chatLog"></div>
+        <div class="chips" id="chips"></div>
+        <form class="chat-input" id="chatForm">
+          <input id="chatText" autocomplete="off" placeholder="Ask about bias, models, applicants, or write SQL…">
+          <button class="btn primary" type="submit">➤</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- SQL -->
+    <section class="page" id="page-sql">
+      <div class="filters"><label><span data-i18n="sq_query">Audit query</span><select id="sqSelect"></select></label>
+        <button class="btn primary" id="sqRun" data-i18n="sq_run">Run</button></div>
+      <div class="grid g-1-1">
+        <div class="card"><h3>SQL</h3><pre class="code" id="sqCode"></pre></div>
+        <div class="card"><h3 data-i18n="sq_result">Result</h3><div class="table-wrap" id="sqResult"></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script>
+/* Saudi Fair Hiring Audit – front end (vanilla JS, Chart.js, marked). Talks only to the FastAPI backend. */
+"use strict";
+
+const C = { navy: "#1F3864", blue: "#257DE0", orange: "#F47230", teal: "#00A888", red: "#EC4647", grey: "#8EA9DB", sub: "#666" };
+const state = { lang: localStorage.getItem("fh_lang") || "en", charts: {}, apOffset: 0, chat: [], models: [] };
+
+// ------------------------------------------------------------------ i18n
+const AR = {
+  appName: "تدقيق عدالة التوظيف", appSub: "CS 476 · أخلاقيات علم البيانات",
+  nav_overview: "نظرة عامة", nav_cleaning: "تنظيف البيانات",
+  cl_lead: "تصدير نظام الموارد البشرية الخام كان فيه صفوف مكررة وسجلات تجريبية وتسميات عربي وإنجليزي مختلفة وأرقام مكتوبة كنص وبيانات شخصية. كود التنظيف يصلحها بخطوات مسجلة في جدول data_quality_log.",
+  cl_steps: "خطوات التنظيف", cl_profile: "قبل وبعد", cl_raw: "البيانات الخام (البيانات الشخصية مخفية)", cl_clean: "نفس المتقدمين بعد التنظيف", nav_models: "مقارنة النماذج", nav_groups: "العدالة بين الفئات", nav_proxies: "المتغيرات البديلة والتفسير",
+  nav_applicants: "المتقدمون", nav_score: "تقييم متقدم", nav_assistant: "المساعد الذكي", nav_sql: "تدقيق SQL",
+  synthetic: "كل البيانات مصطنعة. النتائج تدعم قرار الإنسان ولا تحل محله.",
+  ov_lead: "قرارات توظيف سابقة على 10,000 طلب سعودي مصطنع. هل عومل المتقدمون المتساوون في الكفاءة بنفس الطريقة؟",
+  ov_chart1: "نسبة التوظيف حسب درجة التأهيل والجنس (%)", ov_chart2: "نسبة التوظيف حسب المنطقة (%)",
+  ov_note1: "في كل مستوى تأهيل، توظفت النساء أقل من الرجال. هذا الفرق هو التحيز.",
+  ov_note2: "الأعمدة الحمراء أقل من 80% من أفضل منطقة (قاعدة الأربعة أخماس).",
+  md_lead: "خمسة نماذج تدربت على نفس التاريخ المتحيز، وكل نموذج يرشح نفس النسبة من المتقدمين.",
+  md_table: "بطاقة النتائج", md_chart1: "نسبة الأثر لكل نموذج (0.80 فأكثر = ناجح)", md_chart2: "العدالة مقابل الدقة",
+  md_note2: "الاتجاه لليمين (أعدل) ما يكلف دقة تقريباً.",
+  model: "النموذج", attribute: "الصفة", gender: "الجنس", region: "المنطقة", outcome: "النتيجة",
+  gr_chart: "نسبة الترشيح ونسبة اكتشاف المؤهلين", gr_table: "التفاصيل",
+  gr_note: "اكتشاف المؤهلين = نسبة المؤهلين فعلاً اللي رشحهم النموذج. التساوي فيها = تكافؤ الفرص.",
+  px_chart: "قدرة كل متغير على كشف الفئة (AUC)", px_note: "0.5 = ما يكشف شي · أكثر من 0.7 = خطر عالٍ. فترة الانقطاع تكشف الجنس، ومسافة التنقل تكشف المنطقة.",
+  fi_chart: "وش يحدد الدرجة", fi_note: "الانحدار اللوجستي: القيمة المطلقة للمعامل المعياري. Gradient Boosting: أهمية التبديل.",
+  ap_detail: "تفاصيل المتقدم", ap_click: "اضغط على صف لعرض قرار كل نموذج وأسباب درجة M5.",
+  sc_lead: "قيّم متقدم جديد بالنموذج الموصى به (M5). نجمع المعلومات المرتبطة بالوظيفة فقط، وما نسأل عن الجنس أو الجنسية أو المنطقة.",
+  f_gpa: "المعدل (0–5)", f_exp: "سنوات الخبرة", f_eng: "درجة الإنجليزي (0–9)", f_cert: "الشهادات", f_tier: "تصنيف الجامعة",
+  f_intern: "تدريب تعاوني", f_degree: "التخصص", f_job: "المسار الوظيفي", sc_btn: "قيّم المتقدم", sc_result: "النتيجة",
+  sc_empty: "عبّ النموذج عشان تشوف الدرجة وتفسيرها.", sc_log: "آخر الطلبات (محفوظة في جدول scoring_requests)",
+  sq_query: "استعلام التدقيق", sq_run: "تشغيل", sq_result: "النتيجة",
+};
+const TITLES = {
+  en: { overview: "Overview", cleaning: "Data cleaning", models: "Model comparison", groups: "Group fairness", proxies: "Proxies & explainability", applicants: "Applicants", score: "Score an applicant", assistant: "AI assistant", sql: "SQL audit" },
+  ar: { overview: "نظرة عامة", cleaning: "تنظيف البيانات", models: "مقارنة النماذج", groups: "العدالة بين الفئات", proxies: "المتغيرات البديلة والتفسير", applicants: "المتقدمون", score: "تقييم متقدم", assistant: "المساعد الذكي", sql: "تدقيق SQL" },
+};
+const T = (en, ar) => (state.lang === "ar" ? ar : en);
+const EN = {};
+document.querySelectorAll("[data-i18n]").forEach((el) => (EN[el.dataset.i18n] = el.textContent));
+
+function applyLang() {
+  const ar = state.lang === "ar";
+  document.documentElement.lang = state.lang;
+  document.documentElement.dir = ar ? "rtl" : "ltr";
+  document.querySelectorAll("[data-i18n]").forEach((el) => (el.textContent = (ar ? AR : EN)[el.dataset.i18n] || EN[el.dataset.i18n]));
+  document.getElementById("langBtn").textContent = ar ? "English" : "العربية";
+  document.getElementById("chatText").placeholder = T("Ask about bias, models, applicants, or write SQL…", "اسأل عن التحيز أو النماذج أو المتقدمين، أو اكتب SQL…");
+  renderChips();
+  route();
+}
+
+// ------------------------------------------------------------------ helpers
+const $ = (id) => document.getElementById(id);
+const api = async (path, opts) => {
+  const r = await fetch(path, opts);
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+  return r.json();
+};
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pct = (v, d = 1) => (v == null ? "–" : (v * 100).toFixed(d) + "%");
+const num = (v, d = 3) => (v == null ? "–" : Number(v).toFixed(d));
+
+function table(rows, cols, opts = {}) {
+  if (!rows.length) return `<p class="note">${T("No rows.", "لا توجد صفوف.")}</p>`;
+  const head = cols.map((c) => `<th>${esc(c.label ?? c.key)}</th>`).join("");
+  const body = rows.map((r, i) => `<tr ${opts.click ? `class="click" data-i="${i}"` : ""}>${cols.map((c) => `<td>${c.fmt ? c.fmt(r[c.key], r) : esc(r[c.key])}</td>`).join("")}</tr>`).join("");
+  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+const verdict = (v) => (v === "PASS" ? `<span class="pass">✔ PASS</span>` : `<span class="fail">✖ FAIL</span>`);
+const ratioFmt = (v) => `<span class="${v >= 0.8 ? "pass" : "fail"}">${num(v, 2)}</span>`;
+
+function chart(id, config) {
+  if (state.charts[id]) state.charts[id].destroy();
+  config.options = Object.assign({ responsive: true, maintainAspectRatio: false, animation: { duration: 300 } }, config.options || {});
+  state.charts[id] = new Chart($(id), config);
+}
+Chart.defaults.font.family = getComputedStyle(document.documentElement).fontFamily;
+Chart.defaults.color = C.sub;
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
+const gridY = { grid: { color: "#EEE" }, border: { display: false } };
+const noGrid = { grid: { display: false } };
+
+// ------------------------------------------------------------------ pages
+const loaded = {};
+const PAGES = {
+  async overview() {
+    const [s, h] = await Promise.all([api("/api/summary"), api("/api/history")]);
+    const d = s.historical_decisions;
+    const ratioBad = d.gender_impact_ratio < 0.8;
+    $("ovKpis").innerHTML = [
+      [T("Applicants", "المتقدمون"), d.applicants.toLocaleString(), ""],
+      [T("Historical hire rate", "نسبة التوظيف التاريخية"), pct(d.hire_rate), ""],
+      [T("Gender impact ratio", "نسبة الأثر للجنس"), num(d.gender_impact_ratio, 2), ratioBad ? "bad" : "good", ratioBad ? "FAIL" : "PASS"],
+      [T("Gap among equally qualified", "الفرق بين المؤهلين"), d.qualified_gap_pp.toFixed(1) + " pp", "bad", T("Men favoured", "لصالح الرجال")],
+    ].map(([l, v, cls, chip]) => `<div class="kpi"><div class="lbl">${l}</div><div class="val ${cls}">${v}${chip ? `<span class="chip ${cls}">${chip}</span>` : ""}</div></div>`).join("");
+
+    const bands = h.by_band.map((r) => r.qualification_band.split(": ")[1]);
+    chart("chBand", { type: "bar", data: { labels: bands, datasets: [
+      { label: T("Male", "رجال"), data: h.by_band.map((r) => r.male_hired_pct), backgroundColor: C.blue, borderRadius: 4 },
+      { label: T("Female", "نساء"), data: h.by_band.map((r) => r.female_hired_pct), backgroundColor: C.orange, borderRadius: 4 }] },
+      options: { scales: { y: { ...gridY, max: 100 }, x: { ...noGrid, title: { display: true, text: T("Qualification score band", "فئة درجة التأهيل") } } } } });
+    chart("chRegion", { type: "bar", data: { labels: h.by_region.map((r) => r.region_group), datasets: [{
+      label: T("Hire rate %", "نسبة التوظيف %"), data: h.by_region.map((r) => +(r.hire_rate * 100).toFixed(1)),
+      backgroundColor: h.by_region.map((r) => (r.impact_ratio < 0.8 ? C.red : C.blue)), borderRadius: 4 }] },
+      options: { indexAxis: "y", plugins: { legend: { display: false } }, scales: { x: gridY, y: noGrid } } });
+  },
+
+  async cleaning() {
+    const [q, raw] = await Promise.all([api("/api/data-quality"), api("/api/data-quality/raw-sample")]);
+    const p = Object.fromEntries(q.profile.map((r) => [r.metric, r]));
+    const kpi = (label, m) => `<div class="kpi"><div class="lbl">${label}</div><div class="val">${p[m].raw.toLocaleString()} <span style="color:#999;font-weight:400">→</span> <span style="color:${C.teal}">${p[m].clean.toLocaleString()}</span></div></div>`;
+    $("clKpis").innerHTML = kpi(T("Rows", "الصفوف"), "Rows") + kpi(T("Duplicate rows", "صفوف مكررة"), "Duplicate rows") +
+      kpi(T("Gender labels", "تسميات الجنس"), "Distinct gender labels") + kpi(T("Personal-ID columns", "أعمدة بيانات شخصية"), "Columns with personal identifiers");
+    const max = Math.max(...q.steps.filter((s) => s.category !== "Load").map((s) => s.rows_affected), 1);
+    $("clSteps").innerHTML = table(q.steps, [
+      { key: "step_no", label: "#" }, { key: "category", label: T("Category", "النوع") }, { key: "step", label: T("Step", "الخطوة") },
+      { key: "rows_affected", label: T("Rows affected", "صفوف متأثرة"), fmt: (v, r) => r.category === "Load" ? v.toLocaleString() : `<span class="bar-cell"><i style="width:${(v / max) * 80}px;background:${C.blue}"></i>${v.toLocaleString()}</span>` },
+      { key: "rows_after", label: T("Rows after", "الصفوف بعدها"), fmt: (v) => v.toLocaleString() }]);
+    $("clProfile").innerHTML = table(q.profile, [{ key: "metric", label: T("Metric", "المقياس") },
+      { key: "raw", label: T("Raw", "خام") }, { key: "clean", label: T("Clean", "نظيف") }]);
+    $("clRaw").innerHTML = table(raw, Object.keys(raw[0] || {}).map((k) => ({ key: k })));
+    $("clClean").innerHTML = table(q.clean_sample, Object.keys(q.clean_sample[0] || {}).map((k) => ({ key: k })));
+  },
+
+  async models() {
+    const m = state.models.length ? state.models : (state.models = await api("/api/models"));
+    $("mdTable").innerHTML = table(m, [
+      { key: "model_id", label: T("Model", "النموذج") }, { key: "model_name", label: T("Name", "الاسم") },
+      { key: "mitigation", label: T("Mitigation", "المعالجة") }, { key: "auc", label: "AUC" },
+      { key: "recall_qualified", label: T("Recall (qualified)", "اكتشاف المؤهلين") },
+      { key: "di_gender", label: T("DI gender", "أثر الجنس"), fmt: ratioFmt }, { key: "di_region", label: T("DI region", "أثر المنطقة"), fmt: ratioFmt },
+      { key: "eod_gender", label: T("EO gap gender", "فجوة الفرص") }, { key: "four_fifths", label: "4/5", fmt: verdict }]);
+    const ids = m.map((r) => r.model_id);
+    chart("chDI", { type: "bar", data: { labels: ids, datasets: [
+      { label: T("Gender", "الجنس"), data: m.map((r) => r.di_gender), backgroundColor: C.blue, borderRadius: 4 },
+      { label: T("Region", "المنطقة"), data: m.map((r) => r.di_region), backgroundColor: C.teal, borderRadius: 4 },
+      { type: "line", label: "0.80", data: ids.map(() => 0.8), borderColor: C.red, borderDash: [6, 4], pointRadius: 0, borderWidth: 1.5 }] },
+      options: { scales: { y: { ...gridY, min: 0.5, max: 1.02 }, x: noGrid } } });
+    chart("chTrade", { type: "scatter", data: { datasets: [{ label: "models",
+      data: m.map((r) => ({ x: r.di_gender, y: r.auc, id: r.model_id })),
+      backgroundColor: m.map((r) => (r.four_fifths === "PASS" ? C.teal : C.red)), pointRadius: 8, pointHoverRadius: 10 }] },
+      options: { plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.raw.id}: DI ${c.raw.x}, AUC ${c.raw.y}` } } },
+        scales: { x: { ...gridY, title: { display: true, text: T("Gender impact ratio", "نسبة الأثر للجنس") } }, y: { ...gridY, title: { display: true, text: "AUC" } } } },
+      plugins: [{ id: "labels", afterDatasetsDraw(ch) { const ctx = ch.ctx; ch.getDatasetMeta(0).data.forEach((pt, i) => { ctx.save(); ctx.fillStyle = C.navy; ctx.font = "600 12px sans-serif"; ctx.fillText(m[i].model_id, pt.x + 10, pt.y - 6); ctx.restore(); }); } }] });
+  },
+
+  async groups() {
+    const rows = await api(`/api/group-metrics?model_id=${$("grModel").value}&attribute=${$("grAttr").value}`);
+    chart("chGroups", { type: "bar", data: { labels: rows.map((r) => r.group_name), datasets: [
+      { label: T("Selection rate", "نسبة الترشيح"), data: rows.map((r) => r.selection_rate), backgroundColor: C.blue, borderRadius: 4 },
+      { label: T("Recall of qualified", "اكتشاف المؤهلين"), data: rows.map((r) => r.recall_qualified), backgroundColor: C.teal, borderRadius: 4 }] },
+      options: { scales: { y: { ...gridY, min: 0, max: 1 }, x: noGrid } } });
+    $("grTable").innerHTML = table(rows, [
+      { key: "group_name", label: T("Group", "الفئة") }, { key: "n", label: "n" },
+      { key: "selection_rate", label: T("Selected", "مرشح"), fmt: (v) => pct(v) },
+      { key: "impact_ratio", label: T("Impact ratio", "نسبة الأثر"), fmt: ratioFmt },
+      { key: "recall_qualified", label: T("Recall", "اكتشاف"), fmt: (v) => pct(v) }]);
+  },
+
+  async proxies() {
+    const p = (await api("/api/proxies")).filter((r) => r.feature !== "ALL FEATURES COMBINED");
+    const byFeat = {};
+    p.forEach((r) => { if (!byFeat[r.feature] || byFeat[r.feature].auc < r.auc) byFeat[r.feature] = r; });
+    const pr = Object.values(byFeat).sort((a, b) => b.auc - a.auc);
+    chart("chProxy", { type: "bar", data: { labels: pr.map((r) => `${r.feature} → ${r.sensitive_attribute}`), datasets: [{
+      label: "AUC", data: pr.map((r) => r.auc), borderRadius: 4,
+      backgroundColor: pr.map((r) => (r.risk_level === "High" ? C.red : r.risk_level === "Medium" ? "#F2A600" : C.grey)) }] },
+      options: { indexAxis: "y", plugins: { legend: { display: false } }, scales: { x: { ...gridY, min: 0.5, max: 1 }, y: noGrid } } });
+    await PAGES.fi();
+  },
+  async fi() {
+    const f = await api(`/api/feature-importance?model_id=${$("fiModel").value}&top=10`);
+    chart("chFI", { type: "bar", data: { labels: f.map((r) => r.feature), datasets: [{ label: T("Importance", "الأهمية"),
+      data: f.map((r) => r.importance), borderRadius: 4,
+      backgroundColor: f.map((r) => (/career_gap|commute|gender|nationality|region/.test(r.feature) ? C.red : C.blue)) }] },
+      options: { indexAxis: "y", plugins: { legend: { display: false } }, scales: { x: gridY, y: noGrid } } });
+  },
+
+  async applicants() {
+    const q = new URLSearchParams({ model_id: $("apModel").value, limit: 15, offset: state.apOffset });
+    [["gender", "apGender"], ["region_group", "apRegion"], ["outcome", "apOutcome"]].forEach(([k, id]) => $(id).value && q.set(k, $(id).value));
+    const r = await api("/api/applicants?" + q);
+    $("apTable").innerHTML = table(r.rows, [
+      { key: "applicant_id", label: "ID" }, { key: "gender", label: T("Gender", "الجنس") }, { key: "region", label: T("Region", "المنطقة") },
+      { key: "qualification_score", label: T("Qualification", "التأهيل") },
+      { key: "score", label: T("Score", "الدرجة"), fmt: (v) => `<span class="bar-cell"><i style="width:${v * 60}px;background:${C.blue}"></i>${num(v, 2)}</span>` },
+      { key: "outcome_type", label: T("Outcome", "النتيجة"), fmt: (v) => `<span class="${/rejected \(missed/.test(v) ? "fail" : /^Qualified - selected/.test(v) ? "pass" : ""}">${esc(v)}</span>` }], { click: true });
+    $("apInfo").textContent = `${state.apOffset + 1}–${Math.min(state.apOffset + 15, r.total)} / ${r.total.toLocaleString()}`;
+    $("apPrev").disabled = state.apOffset === 0;
+    $("apNext").disabled = state.apOffset + 15 >= r.total;
+    $("apTable").querySelectorAll("tr.click").forEach((tr) => tr.addEventListener("click", () => {
+      $("apTable").querySelectorAll("tr").forEach((x) => x.classList.remove("sel"));
+      tr.classList.add("sel");
+      showApplicant(r.rows[tr.dataset.i].applicant_id);
+    }));
+  },
+
+  async score() {
+    if (!$("fDegree").options.length) {
+      const o = await api("/api/options");
+      $("fDegree").innerHTML = o.degree_field.map((v) => `<option>${esc(v)}</option>`).join("");
+      $("fJob").innerHTML = o.job_family.map((v) => `<option>${esc(v)}</option>`).join("");
+    }
+    const log = await api("/api/scoring-requests?limit=8");
+    $("scLog").innerHTML = table(log.map((r) => ({ ...r, ...JSON.parse(r.inputs_json) })), [
+      { key: "request_id", label: "#" }, { key: "created_at", label: T("Time (UTC)", "الوقت (UTC)") },
+      { key: "gpa", label: "GPA" }, { key: "years_experience", label: T("Exp.", "الخبرة") }, { key: "english_score", label: T("English", "إنجليزي") },
+      { key: "job_family", label: T("Job", "الوظيفة") }, { key: "score", label: T("Score", "الدرجة") },
+      { key: "decision", label: T("Decision", "القرار"), fmt: (v) => `<span class="${v === "Shortlist" ? "pass" : "fail"}">${esc(v)}</span>` }]);
+  },
+
+  async assistant() { if (!state.chat.length) greet(); },
+
+  async sql() {
+    if (!$("sqSelect").options.length) {
+      const list = await api("/api/audit");
+      $("sqSelect").innerHTML = list.map((q) => `<option value="${q.name}">${q.name}</option>`).join("");
+    }
+    await runAudit();
+  },
+};
+
+async function showApplicant(id) {
+  const r = await api(`/api/applicants/${id}`);
+  const a = r.applicant;
+  $("apDetail").innerHTML = `<h3>${esc(id)}</h3>
+    <p class="note">${esc(a.job_family)} · ${esc(a.gender)} · ${esc(a.nationality)} · ${esc(a.region)}<br>
+    GPA ${a.gpa} · ${a.years_experience} ${T("yrs", "سنوات")} · English ${a.english_score} · ${T("certs", "شهادات")} ${a.certifications}<br>
+    ${T("Qualification", "التأهيل")} <b>${a.qualification_score}</b> (${a.truly_qualified ? T("qualified", "مؤهل") : T("not qualified", "غير مؤهل")}) ·
+    ${T("past decision", "القرار السابق")}: <b>${a.hired_historical ? T("hired", "توظف") : T("not hired", "ما توظف")}</b></p>
+    ${table(r.predictions, [{ key: "model_id", label: T("Model", "النموذج") }, { key: "score", label: T("Score", "الدرجة"), fmt: (v) => num(v, 3) },
+      { key: "predicted_hire", label: T("Decision", "القرار"), fmt: (v) => (v ? `<span class="pass">${T("Shortlist", "يرشح")}</span>` : "—") }])}
+    <h3 style="margin-top:14px">${T("Why M5 scored", "ليش هذي درجة M5")} ${r.m5_score}</h3>${factorTable(r.m5_explanation)}`;
+}
+
+function factorTable(f) {
+  const max = Math.max(...f.map((x) => Math.abs(x.contribution)), 0.01);
+  return table(f, [{ key: "label", label: T("Factor", "العامل") }, { key: "value", label: T("Value", "القيمة") },
+    { key: "contribution", label: T("Effect on score", "الأثر"), fmt: (v) => `<span class="bar-cell"><i style="width:${(Math.abs(v) / max) * 70}px;background:${v >= 0 ? C.teal : C.red}"></i>${v > 0 ? "+" : ""}${v}</span>` }]) +
+    `<p class="note">${T("Compared with an average applicant. Green raises the score, red lowers it.", "مقارنة بمتقدم متوسط. الأخضر يرفع الدرجة والأحمر ينزلها.")}</p>`;
+}
+
+$("scoreForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const fd = Object.fromEntries(new FormData(e.target));
+  ["gpa", "english_score"].forEach((k) => (fd[k] = parseFloat(fd[k])));
+  ["years_experience", "certifications", "internship", "university_tier"].forEach((k) => (fd[k] = parseInt(fd[k] || 0, 10)));
+  try {
+    const r = await api("/api/score", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(fd) });
+    const ok = r.decision === "Shortlist";
+    $("scoreResult").innerHTML = `<h3>${T("Result", "النتيجة")} · ${r.model_id}</h3>
+      <div class="score-big">${r.score.toFixed(3)} <span class="chip ${ok ? "good" : "bad"}">${ok ? T("SHORTLIST", "يُرشَّح") : T("NOT SHORTLISTED", "لا يُرشَّح")}</span></div>
+      <div class="meter"><i style="width:${r.score * 100}%"></i><b style="inset-inline-start:${r.cutoff * 100}%"></b></div>
+      <p class="note">${T(`Higher than ${r.percentile}% of test applicants · cutoff ${r.cutoff} (red line)`, `أعلى من ${r.percentile}% من المتقدمين · الحد ${r.cutoff} (الخط الأحمر)`)}</p>
+      ${factorTable(r.factors)}
+      <p class="note">⚖️ ${T("Recommendation only. A human recruiter makes the final decision. Saved as request", "توصية فقط، والقرار النهائي لموظف التوظيف. حُفظ برقم")} #${r.request_id}</p>`;
+    PAGES.score();
+  } catch (err) { $("scoreResult").innerHTML = `<p class="fail">${esc(err.message)}</p>`; }
+});
+
+// ------------------------------------------------------------------ assistant
+const CHIPS = {
+  en: ["Summarise the audit", "How was the data cleaned?", "Compare the models", "Results by gender", "Which features are proxies?", "Explain APP-00042", "Score gpa 4.5, 4 years experience, english 7.5, 2 certifications", "SELECT region_group, AVG(hired_historical) FROM applicants GROUP BY region_group"],
+  ar: ["لخص نتائج التدقيق", "كيف نظفتوا البيانات؟", "قارن النماذج", "النتائج حسب الجنس", "وش المتغيرات البديلة؟", "اشرح APP-00042", "قيّم متقدم معدله 4.5 وخبرته 4 سنوات وإنجليزي 7.5", "النتائج حسب المنطقة"],
+};
+function renderChips() {
+  $("chips").innerHTML = CHIPS[state.lang].map((c) => `<button type="button">${esc(c)}</button>`).join("");
+  $("chips").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => send(b.textContent)));
+}
+function addMsg(role, html) {
+  const div = document.createElement("div");
+  div.className = `msg ${role}`;
+  div.innerHTML = html;
+  $("chatLog").appendChild(div);
+  $("chatLog").scrollTop = $("chatLog").scrollHeight;
+  return div;
+}
+function greet() {
+  addMsg("bot", marked.parse(T(
+    "Hi! I'm the **FairHire Assistant**. I answer from the project's SQL database: ask me about bias, the models, a specific applicant, or score a new applicant. Every answer shows the tools and SQL I used.",
+    "أهلاً! أنا **مساعد FairHire**. أجاوب من قاعدة بيانات المشروع: اسألني عن التحيز أو النماذج أو متقدم معيّن، أو خلني أقيّم متقدم جديد. كل إجابة توضح الأدوات وأوامر SQL اللي استخدمتها.")));
+}
+async function send(text) {
+  text = text.trim();
+  if (!text) return;
+  addMsg("user", esc(text));
+  $("chatText").value = "";
+  const wait = addMsg("bot", `<span class="typing">${T("Thinking…", "جاري التفكير…")}</span>`);
+  try {
+    const r = await api("/api/agent/chat", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, history: state.chat.slice(-10) }) });
+    state.chat.push({ role: "user", content: text }, { role: "assistant", content: r.answer });
+    const tools = r.tools.map((t) => `<code>${esc(t.tool)}</code>`).join(" ");
+    const sql = r.sql.map((s) => `<pre><code>${esc(s)}</code></pre>`).join("");
+    wait.innerHTML = marked.parse(esc(r.answer).replace(/&gt;/g, ">")) +
+      `<div class="trace">${T("mode", "الوضع")}: <b>${r.mode}</b>${tools ? " · " + T("tools", "الأدوات") + ": " + tools : ""}${sql}</div>`;
+  } catch (err) { wait.innerHTML = `<span class="fail">${esc(err.message)}</span>`; }
+  $("chatLog").scrollTop = $("chatLog").scrollHeight;
+}
+$("chatForm").addEventListener("submit", (e) => { e.preventDefault(); send($("chatText").value); });
+
+// ------------------------------------------------------------------ SQL audit
+async function runAudit() {
+  const r = await api(`/api/audit/${$("sqSelect").value}`);
+  $("sqCode").textContent = r.sql;
+  $("sqResult").innerHTML = table(r.rows.map((row) => Object.fromEntries(r.columns.map((c, i) => [c, row[i]]))), r.columns.map((c) => ({ key: c })));
+}
+$("sqRun").addEventListener("click", runAudit);
+$("sqSelect").addEventListener("change", runAudit);
+
+// ------------------------------------------------------------------ routing
+async function route() {
+  const page = (location.hash || "#overview").slice(1);
+  if (!PAGES[page]) return (location.hash = "#overview");
+  document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === `page-${page}`));
+  document.querySelectorAll("#nav a").forEach((a) => a.classList.toggle("active", a.dataset.page === page));
+  $("pageTitle").textContent = TITLES[state.lang][page];
+  try { await PAGES[page](); } catch (e) { console.error(e); }
+}
+window.addEventListener("hashchange", route);
+$("langBtn").addEventListener("click", () => { state.lang = state.lang === "en" ? "ar" : "en"; localStorage.setItem("fh_lang", state.lang); applyLang(); });
+["grModel", "grAttr"].forEach((id) => $(id).addEventListener("change", PAGES.groups));
+$("fiModel").addEventListener("change", PAGES.fi);
+["apModel", "apGender", "apRegion", "apOutcome"].forEach((id) => $(id).addEventListener("change", () => { state.apOffset = 0; PAGES.applicants(); }));
+$("apPrev").addEventListener("click", () => { state.apOffset = Math.max(0, state.apOffset - 15); PAGES.applicants(); });
+$("apNext").addEventListener("click", () => { state.apOffset += 15; PAGES.applicants(); });
+
+(async function init() {
+  const opts = ["M1", "M2", "M3", "M4", "M5"].map((m) => `<option ${m === "M5" ? "selected" : ""}>${m}</option>`).join("");
+  ["grModel", "fiModel", "apModel"].forEach((id) => ($(id).innerHTML = opts));
+  try { const h = await api("/api/health"); $("agentMode").textContent = `AI agent: ${h.agent_mode}`; } catch { /* backend offline */ }
+  applyLang();
+})();
+</script>
+</body>
+</html>
